@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>Discussion Portal</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #F8F9FA;
+    }
+
+    .header {
+        background-color: #007b7b;
+        color: white;
+        padding: 12px 20px;
+    }
+
+    .header h1 {
+        margin: 0;
+        font-size: 1.5rem;
+    }
+
+    .left-pane {
+        border-right: 1px solid #BCCBDB;
+        padding: 20px;
+        background-color: #f2f2f2;
+    }
+
+    .new-question-btn {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        font-size: 1rem;
+        width: 100%;
+        border: none;
+        text-align: left;
+        font-weight: 500;
+    }
+
+    .new-question-btn:hover {
+        background-color: #0056b3;
+    }
+
+    .search-box {
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #BCCBDB;
+        border-radius: 5px;
+        width: 100%;
+        font-size: 1rem;
+    }
+
+    .left-pane ul {
+        padding-left: 0;
+    }
+
+    .left-pane ul li {
+        padding: 15px;
+        background-color: white;
+        border: 1px solid #BCCBDB;
+        border-radius: 5px;
+        margin-bottom: 15px;
+    }
+
+    .left-pane ul li h3 {
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    .left-pane ul li p {
+        font-size: 0.85rem;
+        margin: 0;
+    }
+
+    .right-pane {
+        padding: 20px;
+    }
+
+    .question-box, .response-box {
+        background-color: white;
+        padding: 15px;
+        border: 1px solid #BCCBDB;
+        border-radius: 5px;
+        margin-bottom: 15px;
+    }
+
+    .response-box strong {
+        font-size: 1rem;
+    }
+
+    form input,
+    form textarea {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 12px;
+        border: 1px solid #BCCBDB;
+        border-radius: 5px;
+        font-size: 0.875rem;
+    }
+
+    /* Button Styling based on the provided image */
+    form button,
+    #resolve-button {
+        background-color: #007bff;
+    color: white;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 10px;
+    }
+
+    form button:hover,
+    #resolve-button:hover {
+        background-color: #0056b3;
+    }
+
+    /* Center the buttons with text aligned left */
+    form button,
+    #resolve-button {
+        display: block;
+
+        margin-bottom: 15px;
+    }
+
+    @media (max-width: 576px) {
+        .left-pane {
+            border-right: none;
+            padding: 10px;
+        }
+        .right-pane {
+            padding: 10px;
+        }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Discussion Portal</h1>
+  </div>
+
+  <div class="container-fluid mt-3">
+    <div class="row">
+      <!-- Left Pane -->
+      <div class="col-lg-4 col-md-5 col-sm-12 mb-3 left-pane">
+        <button class="new-question-btn">New Question Form</button>
+        <input type="text" class="search-box" placeholder="Search questions...">
+        <ul class="list-unstyled">
+          <li class="mb-3">
+            <h3 class="h5">JSON & Web storage</h3>
+            <p>How to use Web Storage</p>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Right Pane -->
+      <div class="col-lg-8 col-md-7 col-sm-12 right-pane">
+        <h3>Question</h3>
+        <div class="question-box">
+          <h4>JSON & Web Storage</h4>
+          <p>How to use Web Storage</p>
+        </div>
+
+        <button id="resolve-button" class="mb-4">Resolve</button>
+
+        <h3>Response</h3>
+        <div class="response-box-container mb-4">
+          <div class="response-box">
+            <strong>Amit</strong><br>
+            <p>Local storage can only save strings, so storing objects requires that they be turned into strings using JSON.</p>
+          </div>
+        </div>
+
+        <h3>Add Response</h3>
+        <form id="response-form">
+          <input type="text" placeholder="Enter Name" required>
+          <textarea placeholder="Enter Comment" rows="3" required></textarea>
+          <button type="submit">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script to handle form and store responses -->
+  <script>
+   document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('response-form');
+  const responseContainer = document.querySelector('.response-box-container');
+  const questionList = document.querySelector('.left-pane ul');
+  const questionBox = document.querySelector('.question-box');
+  const resolveButton = document.getElementById('resolve-button');
+  let questions = JSON.parse(localStorage.getItem('questions')) || [];
+
+  // Load stored questions
+  loadStoredQuestions();
+
+  // Handle New Question Form click
+  document.querySelector('.new-question-btn').addEventListener('click', function () {
+    const title = prompt('Enter Question Title:');
+    const question = prompt('Enter Your Question:');
+
+    if (!title || !question) {
+      alert('Both Title and Question are required!');
+      return;
+    }
+
+    const newQuestion = {
+      id: Date.now(),
+      title: title,
+      question: question,
+      responses: [],
+      resolved: false,
+    };
+
+    questions.push(newQuestion);
+    localStorage.setItem('questions', JSON.stringify(questions));
+
+    // Add new question to the left pane
+    displayQuestionInLeftPane(newQuestion);
+  });
+
+  // Function to load stored questions from localStorage
+  function loadStoredQuestions() {
+    questions.forEach(displayQuestionInLeftPane);
+  }
+
+  // Function to display question in the left pane
+  function displayQuestionInLeftPane(question) {
+    const li = document.createElement('li');
+    li.classList.add('mb-3');
+    li.dataset.questionId = question.id;
+    li.innerHTML = `<h3 class="h5">${question.title}</h3><p>${question.question}</p>`;
+
+    li.addEventListener('click', function () {
+      loadQuestionToRightPane(question.id);
+    });
+
+    questionList.appendChild(li);
+  }
+
+  // Load question details and responses in the right pane
+  function loadQuestionToRightPane(questionId) {
+    const question = questions.find((q) => q.id === questionId);
+
+    if (!question) return;
+
+    // Display question in the right pane
+    questionBox.innerHTML = `<h4>${question.title}</h4><p>${question.question}</p>`;
+
+    // Show Resolve button and mark resolved when clicked
+    resolveButton.style.display = 'block';
+    resolveButton.onclick = function () {
+      question.resolved = true;
+      localStorage.setItem('questions', JSON.stringify(questions));
+      alert('Question marked as resolved.');
+    };
+
+    // Load stored responses
+    responseContainer.innerHTML = '';
+    question.responses.forEach(displayResponse);
+
+    // Handle form submission
+    form.onsubmit = function (event) {
+      event.preventDefault();
+
+      // Get form data
+      const name = form.querySelector('input').value.trim();
+      const comment = form.querySelector('textarea').value.trim();
+
+      // Ensure fields are filled
+      if (!name || !comment) {
+        alert('Both fields are required!');
+        return;
+      }
+
+      // Create response object
+      const response = { name, comment };
+
+      // Add response to the question
+      question.responses.push(response);
+      localStorage.setItem('questions', JSON.stringify(questions));
+
+      // Display the new response
+      displayResponse(response);
+
+      // Clear form after submission
+      form.reset();
+    };
+  }
+
+  // Function to display a response on the page
+  function displayResponse(response) {
+    const responseDiv = document.createElement('div');
+    responseDiv.classList.add('response-box', 'mb-4');
+    responseDiv.innerHTML = `<strong>${response.name}</strong><br><p>${response.comment}</p>`;
+    responseContainer.appendChild(responseDiv);
+  }
+});
+
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
